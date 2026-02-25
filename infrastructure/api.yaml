@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Sport Leagues - API Gateway + Lambda
+
+Parameters:
+  Environment:
+    Type: String
+  ProjectName:
+    Type: String
+  CognitoUserPoolId:
+    Type: String
+  CognitoClientId:
+    Type: String
+  UsersTableName:
+    Type: String
+  LeaguesTableName:
+    Type: String
+  LeagueMembersTableName:
+    Type: String
+  RoundsTableName:
+    Type: String
+  RoundParticipantsTableName:
+    Type: String
+  ScoresTableName:
+    Type: String
+  ConversationsTableName:
+    Type: String
+  ChatMessagesTableName:
+    Type: String
+  FollowsTableName:
+    Type: String
+  PaymentsTableName:
+    Type: String
+
+Resources:
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-api'
+      Handler: dist/index.handler
+      Runtime: nodejs20.x
+      MemorySize: 512
+      Timeout: 30
+      CodeUri: ../backend/
+      Environment:
+        Variables:
+          NODE_ENV: !Ref Environment
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref CognitoClientId
+          USERS_TABLE: !Ref UsersTableName
+          LEAGUES_TABLE: !Ref LeaguesTableName
+          LEAGUE_MEMBERS_TABLE: !Ref LeagueMembersTableName
+          ROUNDS_TABLE: !Ref RoundsTableName
+          ROUND_PARTICIPANTS_TABLE: !Ref RoundParticipantsTableName
+          SCORES_TABLE: !Ref ScoresTableName
+          CONVERSATIONS_TABLE: !Ref ConversationsTableName
+          CHAT_MESSAGES_TABLE: !Ref ChatMessagesTableName
+          FOLLOWS_TABLE: !Ref FollowsTableName
+          PAYMENTS_TABLE: !Ref PaymentsTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LeaguesTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LeagueMembersTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoundsTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoundParticipantsTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ScoresTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConversationsTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatMessagesTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref FollowsTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PaymentsTableName
+      Events:
+        ApiProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            RestApiId: !Ref ApiGateway
+
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub '${ProjectName}-${Environment}-api'
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,PATCH,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+        MaxAge: "'300'"
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPoolId}'
+        AddDefaultAuthorizerToCorsPreflight: false
+
+  ApiFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ApiFunction}'
+      RetentionInDays: 14
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway URL
+    Value: !Sub 'https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}'
+  ApiFunctionArn:
+    Description: API Lambda Function ARN
+    Value: !GetAtt ApiFunction.Arn

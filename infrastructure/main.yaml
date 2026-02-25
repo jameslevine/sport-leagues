@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Sport Leagues - Main Stack
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+  ProjectName:
+    Type: String
+    Default: sport-leagues
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: nodejs20.x
+    MemorySize: 256
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+
+Resources:
+  CognitoStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./cognito.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+
+  DynamoDBStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./dynamodb.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+
+  ApiStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - CognitoStack
+      - DynamoDBStack
+    Properties:
+      TemplateURL: ./api.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+        CognitoUserPoolId: !GetAtt CognitoStack.Outputs.UserPoolId
+        CognitoClientId: !GetAtt CognitoStack.Outputs.UserPoolClientId
+        UsersTableName: !GetAtt DynamoDBStack.Outputs.UsersTableName
+        LeaguesTableName: !GetAtt DynamoDBStack.Outputs.LeaguesTableName
+        LeagueMembersTableName: !GetAtt DynamoDBStack.Outputs.LeagueMembersTableName
+        RoundsTableName: !GetAtt DynamoDBStack.Outputs.RoundsTableName
+        RoundParticipantsTableName: !GetAtt DynamoDBStack.Outputs.RoundParticipantsTableName
+        MatchesTableName: !GetAtt DynamoDBStack.Outputs.MatchesTableName
+        ScoresTableName: !GetAtt DynamoDBStack.Outputs.ScoresTableName
+        ConversationsTableName: !GetAtt DynamoDBStack.Outputs.ConversationsTableName
+        ChatMessagesTableName: !GetAtt DynamoDBStack.Outputs.ChatMessagesTableName
+        FollowsTableName: !GetAtt DynamoDBStack.Outputs.FollowsTableName
+        PaymentsTableName: !GetAtt DynamoDBStack.Outputs.PaymentsTableName
+        NotificationsTableName: !GetAtt DynamoDBStack.Outputs.NotificationsTableName
+        WebSocketConnectionsTableName: !GetAtt DynamoDBStack.Outputs.WebSocketConnectionsTableName
+
+  WebSocketStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DynamoDBStack
+    Properties:
+      TemplateURL: ./websocket.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+        WebSocketConnectionsTableName: !GetAtt DynamoDBStack.Outputs.WebSocketConnectionsTableName
+        WebSocketConnectionsTableArn: !GetAtt DynamoDBStack.Outputs.WebSocketConnectionsTableArn
+        ChatMessagesTableName: !GetAtt DynamoDBStack.Outputs.ChatMessagesTableName
+        ConversationsTableName: !GetAtt DynamoDBStack.Outputs.ConversationsTableName
+
+  S3CloudFrontStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./s3-cloudfront.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway URL
+    Value: !GetAtt ApiStack.Outputs.ApiUrl
+  WebSocketUrl:
+    Description: WebSocket API URL
+    Value: !GetAtt WebSocketStack.Outputs.WebSocketApiUrl
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !GetAtt CognitoStack.Outputs.UserPoolId
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !GetAtt CognitoStack.Outputs.UserPoolClientId
+  WebsiteUrl:
+    Description: CloudFront Website URL
+    Value: !GetAtt S3CloudFrontStack.Outputs.CloudFrontUrl

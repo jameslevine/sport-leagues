@@ -1,0 +1,150 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Enviar",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signUp": "Registrarse",
+    "signOut": "Cerrar Sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes cuenta? Regístrate",
+    "hasAccount": "¿Ya tienes cuenta? Inicia Sesión",
+    "verifyEmail": "Verificar Correo",
+    "verificationCode": "Código de Verificación",
+    "verificationSent": "Hemos enviado un código de verificación a {{email}}. Revisa tu bandeja de entrada.",
+    "passwordRequirements": "Mín. 8 caracteres con mayúsculas, minúsculas, números y símbolos",
+    "invalidCredentials": "Correo o contraseña inválidos",
+    "userNotConfirmed": "Por favor verifica tu correo electrónico primero.",
+    "accountExists": "Ya existe una cuenta con este correo",
+    "title": "Sport Leagues",
+    "subtitle": "Inicia sesión en tu cuenta",
+    "createAccount": "Crear Cuenta",
+    "register": "Registrarse"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "leagues": "Ligas",
+    "messages": "Mensajes",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "notifications": "Notificaciones"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "myLeagues": "Mis Ligas",
+    "upcomingRounds": "Próximas Rondas",
+    "following": "Siguiendo",
+    "roundsPlayed": "Rondas Jugadas"
+  },
+  "leagues": {
+    "title": "Ligas",
+    "createLeague": "Crear Liga",
+    "noLeagues": "No se encontraron ligas. ¡Crea una para empezar!",
+    "failedToLoad": "Error al cargar ligas. Inténtalo de nuevo.",
+    "joinLeague": "Unirse a Liga",
+    "leaveLeague": "Salir de Liga",
+    "members": "miembros",
+    "category": {
+      "OPEN": "Abierta",
+      "WOMEN": "Mujeres",
+      "KIDS": "Niños",
+      "BEGINNERS": "Principiantes",
+      "SENIORS": "Seniors",
+      "INTERMEDIATE": "Intermedio",
+      "ADVANCED": "Avanzado"
+    }
+  },
+  "rounds": {
+    "title": "Rondas",
+    "createRound": "Crear Ronda",
+    "joinRound": "Unirse a Ronda",
+    "leaveRound": "Salir de Ronda",
+    "cancelRound": "Cancelar Ronda",
+    "entryFee": "Cuota de Entrada",
+    "players": "Jugadores",
+    "scheduledFor": "Programada para",
+    "registrationDeadline": "Fecha Límite de Inscripción",
+    "status": {
+      "OPEN": "Abierta",
+      "FULL": "Llena",
+      "IN_PROGRESS": "En Progreso",
+      "COMPLETED": "Completada",
+      "CANCELLED": "Cancelada"
+    }
+  },
+  "matches": {
+    "title": "Partidos",
+    "group": "Grupo",
+    "reschedule": "Reprogramar",
+    "openGroupChat": "Abrir Chat de Grupo",
+    "players": "Jugadores",
+    "rescheduledBy": "Reprogramado por {{name}}",
+    "rescheduleTo": "Todos los jugadores serán notificados de la nueva fecha y hora.",
+    "newDate": "Nueva Fecha",
+    "newTime": "Nueva Hora",
+    "status": {
+      "SCHEDULED": "Programado",
+      "RESCHEDULED": "Reprogramado",
+      "IN_PROGRESS": "En Progreso",
+      "COMPLETED": "Completado",
+      "CANCELLED": "Cancelado"
+    }
+  },
+  "profile": {
+    "title": "Perfil",
+    "sportProfile": "Perfil Deportivo",
+    "handicap": "Hándicap",
+    "linkHandicap": "Vincula tu cuenta oficial de hándicap para seguir tu ranking",
+    "statistics": "Estadísticas",
+    "followers": "Seguidores",
+    "following": "Siguiendo",
+    "roundsPlayed": "Rondas Jugadas",
+    "leaguesJoined": "Ligas Unidas",
+    "notificationSettings": "Configuración de Notificaciones"
+  },
+  "notifications": {
+    "title": "Configuración de Notificaciones",
+    "channels": "Canales de Notificación",
+    "channelsDescription": "Elige cómo quieres recibir notificaciones sobre rondas, partidos y mensajes.",
+    "push": "Notificaciones Push",
+    "pushDescription": "Recibe notificaciones instantáneas en tu dispositivo móvil",
+    "sms": "Notificaciones SMS",
+    "smsDescription": "Recibe mensajes de texto para actualizaciones importantes",
+    "emailNotifications": "Notificaciones por Correo",
+    "emailDescription": "Recibe resúmenes y actualizaciones importantes por correo",
+    "phoneNumber": "Número de Teléfono",
+    "whatYouGet": "De qué serás notificado",
+    "roundDeadline": "Recordatorios de fecha límite de inscripción",
+    "matchScheduling": "Programación de partidos (cuando se asignan grupos)",
+    "matchRescheduling": "Reprogramación de partidos por otros jugadores",
+    "roundStarting": "Notificaciones de inicio de ronda",
+    "paymentUpdates": "Confirmaciones de pago y reembolsos",
+    "newMessages": "Nuevos mensajes en chats de grupo",
+    "savePreferences": "Guardar Preferencias",
+    "saved": "¡Preferencias de notificación guardadas exitosamente!"
+  },
+  "messages": {
+    "title": "Mensajes",
+    "noMessages": "Aún no hay mensajes",
+    "typeMessage": "Escribe un mensaje...",
+    "send": "Enviar"
+  }
+}

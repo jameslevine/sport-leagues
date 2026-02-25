@@ -1,0 +1,150 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email Address",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account? Sign Up",
+    "hasAccount": "Already have an account? Sign In",
+    "verifyEmail": "Verify Email",
+    "verificationCode": "Verification Code",
+    "verificationSent": "We've sent a verification code to {{email}}. Please check your inbox.",
+    "passwordRequirements": "Min 8 chars with uppercase, lowercase, number, and symbol",
+    "invalidCredentials": "Invalid email or password",
+    "userNotConfirmed": "Please verify your email address first.",
+    "accountExists": "An account with this email already exists",
+    "title": "Sport Leagues",
+    "subtitle": "Sign in to your account",
+    "createAccount": "Create Account",
+    "register": "Register"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "leagues": "Leagues",
+    "messages": "Messages",
+    "profile": "Profile",
+    "settings": "Settings",
+    "notifications": "Notifications"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "myLeagues": "My Leagues",
+    "upcomingRounds": "Upcoming Rounds",
+    "following": "Following",
+    "roundsPlayed": "Rounds Played"
+  },
+  "leagues": {
+    "title": "Leagues",
+    "createLeague": "Create League",
+    "noLeagues": "No leagues found. Create one to get started!",
+    "failedToLoad": "Failed to load leagues. Please try again.",
+    "joinLeague": "Join League",
+    "leaveLeague": "Leave League",
+    "members": "members",
+    "category": {
+      "OPEN": "Open",
+      "WOMEN": "Women",
+      "KIDS": "Kids",
+      "BEGINNERS": "Beginners",
+      "SENIORS": "Seniors",
+      "INTERMEDIATE": "Intermediate",
+      "ADVANCED": "Advanced"
+    }
+  },
+  "rounds": {
+    "title": "Rounds",
+    "createRound": "Create Round",
+    "joinRound": "Join Round",
+    "leaveRound": "Leave Round",
+    "cancelRound": "Cancel Round",
+    "entryFee": "Entry Fee",
+    "players": "Players",
+    "scheduledFor": "Scheduled for",
+    "registrationDeadline": "Registration Deadline",
+    "status": {
+      "OPEN": "Open",
+      "FULL": "Full",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    }
+  },
+  "matches": {
+    "title": "Matches",
+    "group": "Group",
+    "reschedule": "Reschedule",
+    "openGroupChat": "Open Group Chat",
+    "players": "Players",
+    "rescheduledBy": "Rescheduled by {{name}}",
+    "rescheduleTo": "All players will be notified of the new date and time.",
+    "newDate": "New Date",
+    "newTime": "New Time",
+    "status": {
+      "SCHEDULED": "Scheduled",
+      "RESCHEDULED": "Rescheduled",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "sportProfile": "Sport Profile",
+    "handicap": "Handicap",
+    "linkHandicap": "Link your official handicap account to track your ranking",
+    "statistics": "Statistics",
+    "followers": "Followers",
+    "following": "Following",
+    "roundsPlayed": "Rounds Played",
+    "leaguesJoined": "Leagues Joined",
+    "notificationSettings": "Notification Settings"
+  },
+  "notifications": {
+    "title": "Notification Settings",
+    "channels": "Notification Channels",
+    "channelsDescription": "Choose how you want to receive notifications about rounds, matches, and messages.",
+    "push": "Push Notifications",
+    "pushDescription": "Receive instant notifications on your mobile device",
+    "sms": "SMS Notifications",
+    "smsDescription": "Receive text messages for important updates like match scheduling",
+    "emailNotifications": "Email Notifications",
+    "emailDescription": "Receive email summaries and important updates",
+    "phoneNumber": "Phone Number",
+    "whatYouGet": "What you'll be notified about",
+    "roundDeadline": "Round registration deadline reminders",
+    "matchScheduling": "Match scheduling (when groups are assigned)",
+    "matchRescheduling": "Match rescheduling by other players",
+    "roundStarting": "Round starting notifications",
+    "paymentUpdates": "Payment confirmations and refunds",
+    "newMessages": "New messages in match group chats",
+    "savePreferences": "Save Preferences",
+    "saved": "Notification preferences saved successfully!"
+  },
+  "messages": {
+    "title": "Messages",
+    "noMessages": "No messages yet",
+    "typeMessage": "Type a message...",
+    "send": "Send"
+  }
+}
