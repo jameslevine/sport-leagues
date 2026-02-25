@@ -31,7 +31,7 @@ export default function LoginPage() {
                 token: session.getAccessToken().getJwtToken(),
             });
 
-            navigate(ROUTES.DASHBOARD);
+            navigate('/app/dashboard');
         } catch (err: unknown) {
             const error = err as { message?: string };
             if (error.message === 'User is not confirmed.') {

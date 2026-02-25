@@ -26,6 +26,8 @@ Resources:
         - email
       UsernameAttributes:
         - email
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -530,6 +532,50 @@ Resources:
             Path: /{proxy+}
             Method: ANY
             RestApiId: !Ref ApiGateway
+
+  # ==================== SCHEDULED ROUND PROCESSING ====================
+  RoundProcessingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-process-rounds'
+      Handler: dist/scripts/process-rounds.handler
+      Runtime: nodejs18.x
+      MemorySize: 512
+      Timeout: 300
+      CodeUri: backend/
+      Environment:
+        Variables:
+          ROUNDS_TABLE: !Ref RoundsTable
+          ROUND_PARTICIPANTS_TABLE: !Ref RoundParticipantsTable
+          MATCHES_TABLE: !Ref MatchesTable
+          CONVERSATIONS_TABLE: !Ref ConversationsTable
+          CHAT_MESSAGES_TABLE: !Ref ChatMessagesTable
+          NOTIFICATIONS_TABLE: !Ref NotificationsTable
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoundsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RoundParticipantsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MatchesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConversationsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChatMessagesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NotificationsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PaymentsTable
+      Events:
+        DailySchedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+            Description: Process rounds past registration deadline
+            Enabled: true
 
   ApiGateway:
     Type: AWS::Serverless::Api

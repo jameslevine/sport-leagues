@@ -30,10 +30,10 @@ import { useAuthStore } from '../store';
 const DRAWER_WIDTH = 240;
 
 const navItems = [
-    { label: 'Dashboard', icon: <DashboardIcon />, path: ROUTES.DASHBOARD },
-    { label: 'Leagues', icon: <LeaguesIcon />, path: ROUTES.LEAGUES },
-    { label: 'Messages', icon: <MessageIcon />, path: ROUTES.MESSAGES },
-    { label: 'Profile', icon: <PersonIcon />, path: ROUTES.PROFILE },
+    { label: 'Dashboard', icon: <DashboardIcon />, path: '/app/dashboard' },
+    { label: 'Leagues', icon: <LeaguesIcon />, path: '/app/leagues' },
+    { label: 'Messages', icon: <MessageIcon />, path: '/app/messages' },
+    { label: 'Profile', icon: <PersonIcon />, path: '/app/profile' },
 ];
 
 interface MainLayoutProps {
