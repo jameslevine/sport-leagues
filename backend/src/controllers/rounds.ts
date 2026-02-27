@@ -24,7 +24,7 @@ import {
 } from '../adapters/rounds';
 import { getDbLeagueById, getDbLeagueMember } from '../adapters/leagues';
 import { createDbPayment, updateDbPaymentStatus } from '../adapters/payments';
-import { stripe } from '../lib/stripe';
+import { getStripe } from '../lib/stripe';
 
 export const getRoundsByLeague = async (req: Request, res: Response) => {
   try {
@@ -182,19 +182,32 @@ export const joinRound = async (req: Request, res: Response) => {
         .json({ message: 'Must be a league member to join rounds' });
     }
 
-    // Create Stripe PaymentIntent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: round.entryFee,
-      currency: CURRENCY.DEFAULT.toLowerCase(),
-      metadata: {
-        roundId,
-        userId,
-        sportType,
-      },
-    });
-
     const paymentId = uuidv4();
     const now = dayjs().toISOString();
+    let clientSecret: string | null = null;
+    let stripePaymentIntentId = '';
+
+    // Create Stripe PaymentIntent (if entry fee > 0)
+    if (round.entryFee > 0) {
+      try {
+        const stripeClient = await getStripe();
+        const paymentIntent = await stripeClient.paymentIntents.create({
+          amount: round.entryFee,
+          currency: CURRENCY.DEFAULT.toLowerCase(),
+          metadata: {
+            roundId,
+            userId,
+            sportType,
+            paymentId,
+          },
+        });
+        clientSecret = paymentIntent.client_secret;
+        stripePaymentIntentId = paymentIntent.id;
+      } catch (stripeError) {
+        console.error('Stripe payment creation failed:', stripeError);
+        // Continue without payment — register user anyway
+      }
+    }
 
     // Create payment record
     await createDbPayment({
@@ -207,10 +220,12 @@ export const joinRound = async (req: Request, res: Response) => {
       paymentId,
       userId,
       roundId,
-      stripePaymentIntentId: paymentIntent.id,
+      stripePaymentIntentId,
       amount: round.entryFee,
       currency: CURRENCY.DEFAULT,
-      status: PaymentStatusType.PENDING,
+      status: clientSecret
+        ? PaymentStatusType.PENDING
+        : PaymentStatusType.SUCCEEDED,
       createdAt: now,
       updatedAt: now,
     });
@@ -224,8 +239,10 @@ export const joinRound = async (req: Request, res: Response) => {
       roundId,
       userId,
       paymentId,
-      paymentStatus: PaymentStatus.PENDING,
-      status: ParticipantStatus.REGISTERED,
+      paymentStatus: clientSecret ? PaymentStatus.PENDING : PaymentStatus.PAID,
+      status: clientSecret
+        ? ParticipantStatus.REGISTERED
+        : ParticipantStatus.CONFIRMED,
       joinedAt: now,
     });
 
@@ -239,7 +256,7 @@ export const joinRound = async (req: Request, res: Response) => {
 
     res.json({
       message: 'Registered for round',
-      clientSecret: paymentIntent.client_secret,
+      clientSecret,
       paymentId,
     });
   } catch (error) {
@@ -273,11 +290,9 @@ export const leaveRound = async (req: Request, res: Response) => {
       round.status !== RoundStatus.OPEN &&
       round.status !== RoundStatus.FULL
     ) {
-      return res
-        .status(HTTP_STATUS.BAD_REQUEST)
-        .json({
-          message: 'Cannot leave a round that is in progress or completed',
-        });
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: 'Cannot leave a round that is in progress or completed',
+      });
     }
 
     const participant = await getDbRoundParticipant(sportType, roundId, userId);

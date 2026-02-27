@@ -113,12 +113,38 @@ export const verifyScore = async (req: Request, res: Response) => {
     const sportType = sport.toUpperCase() as SportType;
     const verifierId = req.user.sub;
 
-    // TODO: Verify the verifier is a league admin or match participant
-    // For now, any authenticated user can verify
+    // scoreId format expected: roundId and userId passed in body
+    const { roundId, userId } = req.body;
 
-    // We need roundId and userId from the score to update it
-    // This is a simplified version - in production, we'd look up the score first
-    res.json({ message: 'Score verification not fully implemented yet' });
+    if (!roundId || !userId) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ message: 'roundId and userId are required' });
+    }
+
+    // Verify the round exists
+    const round = await getDbRoundById(sportType, roundId);
+    if (!round) {
+      return res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ message: 'Round not found' });
+    }
+
+    // Verify the verifier is not the same as the score submitter
+    if (verifierId === userId) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ message: 'Cannot verify your own score' });
+    }
+
+    // Update the score verification
+    await updateDbScoreVerification(sportType, roundId, userId, verifierId);
+
+    res.json({
+      message: 'Score verified successfully',
+      scoreId,
+      verifiedBy: verifierId,
+    });
   } catch (error) {
     console.error('Error verifying score:', error);
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({

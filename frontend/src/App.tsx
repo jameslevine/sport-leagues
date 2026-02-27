@@ -23,6 +23,10 @@ import MatchDetailPage from './pages/MatchDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import MessagesPage from './pages/MessagesPage';
 import NotificationSettingsPage from './pages/NotificationSettingsPage';
+import MyMatchesPage from './pages/MyMatchesPage';
+import { useWebSocketConnection } from './hooks/useWebSocket';
+import { useAuthInit } from './hooks/useAuthInit';
+import { Box, CircularProgress } from '@mui/material';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -33,6 +37,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
+    // Restore auth session on app load
+    const { isInitializing } = useAuthInit();
+    // Initialize WebSocket connection when authenticated
+    useWebSocketConnection();
+
+    if (isInitializing) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
+
     return (
         <Routes>
             {/* Public Marketing Pages */}
@@ -104,6 +121,7 @@ function App() {
                                 <Route path="leagues" element={<LeaguesPage />} />
                                 <Route path="leagues/:leagueId" element={<LeagueDetailPage />} />
                                 <Route path="rounds/:roundId" element={<RoundDetailPage />} />
+                                <Route path="matches" element={<MyMatchesPage />} />
                                 <Route path="matches/:matchId" element={<MatchDetailPage />} />
                                 <Route path="profile" element={<ProfilePage />} />
                                 <Route path="messages" element={<MessagesPage />} />

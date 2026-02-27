@@ -63,6 +63,40 @@ export const getDbConversationsByLeague = async (
   }
 };
 
+export const getDbConversationsByUser = async (
+  sportType: SportType,
+  userId: string,
+  limit: number = 20,
+  lastEvaluatedKey?: Record<string, unknown>,
+): Promise<{
+  conversations: Conversation[];
+  lastEvaluatedKey?: Record<string, unknown>;
+}> => {
+  const params = {
+    TableName: TABLE_NAMES.CONVERSATIONS,
+    KeyConditionExpression: 'pk = :pk',
+    FilterExpression: 'contains(participants, :userId)',
+    ExpressionAttributeValues: {
+      ':pk': createConvPK(sportType),
+      ':userId': userId,
+    },
+    ScanIndexForward: false,
+    Limit: limit,
+    ExclusiveStartKey: lastEvaluatedKey,
+  };
+
+  try {
+    const response = await dynamodb.send(new QueryCommand(params));
+    return {
+      conversations: (response.Items || []) as Conversation[],
+      lastEvaluatedKey: response.LastEvaluatedKey,
+    };
+  } catch (error) {
+    console.error('Error fetching conversations by user:', error);
+    throw error;
+  }
+};
+
 export const createDbConversation = async (
   conversation: Conversation,
 ): Promise<Conversation> => {

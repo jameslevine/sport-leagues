@@ -22,16 +22,19 @@ import {
     Message as MessageIcon,
     Person as PersonIcon,
     SportsSoccer as SportsIcon,
+    SportsScore as MatchesIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { useAuthStore } from '../store';
+import { useProfile } from '../hooks/useProfile';
 
 const DRAWER_WIDTH = 240;
 
 const navItems = [
     { label: 'Dashboard', icon: <DashboardIcon />, path: '/app/dashboard' },
     { label: 'Leagues', icon: <LeaguesIcon />, path: '/app/leagues' },
+    { label: 'Matches', icon: <MatchesIcon />, path: '/app/matches' },
     { label: 'Messages', icon: <MessageIcon />, path: '/app/messages' },
     { label: 'Profile', icon: <PersonIcon />, path: '/app/profile' },
 ];
@@ -45,6 +48,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const navigate = useNavigate();
     const { user, logout } = useAuthStore();
+    const { data: profile } = useProfile();
 
     const handleLogout = () => {
         logout();
@@ -68,7 +72,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
                         Sport Leagues
                     </Typography>
                     <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)}>
-                        <Avatar sx={{ width: 32, height: 32 }}>
+                        <Avatar
+                            src={(profile as any)?.avatarUrl}
+                            sx={{ width: 32, height: 32 }}
+                        >
                             {user?.firstName?.[0] || 'U'}
                         </Avatar>
                     </IconButton>

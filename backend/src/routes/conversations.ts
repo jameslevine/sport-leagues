@@ -15,6 +15,19 @@ import {
 export const router = Router({ mergeParams: true });
 
 router.get('/', getConversations);
-router.post('/', createConversation);
-router.get('/:conversationId', getConversationMessages);
-router.post('/:conversationId', sendMessage);
+router.post(
+  '/',
+  validateBody(conversationCreateBodySchema),
+  createConversation,
+);
+router.get(
+  '/:conversationId',
+  validateParams(conversationParamsSchema),
+  getConversationMessages,
+);
+router.post(
+  '/:conversationId',
+  validateParams(conversationParamsSchema),
+  validateBody(messageBodySchema),
+  sendMessage,
+);

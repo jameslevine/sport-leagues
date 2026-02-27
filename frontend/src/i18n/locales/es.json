@@ -51,8 +51,12 @@
     "title": "Panel",
     "myLeagues": "Mis Ligas",
     "upcomingRounds": "Próximas Rondas",
+    "upcomingMatches": "Próximos Partidos",
     "following": "Siguiendo",
-    "roundsPlayed": "Rondas Jugadas"
+    "roundsPlayed": "Rondas Jugadas",
+    "failedToLoad": "Error al cargar datos del panel. Inténtalo de nuevo.",
+    "noLeagues": "Aún no te has unido a ninguna liga. ¡Ve a la página de Ligas para encontrar una cerca de ti!",
+    "leaguesPage": "Página de Ligas"
   },
   "leagues": {
     "title": "Ligas",
@@ -143,8 +147,13 @@
   },
   "messages": {
     "title": "Mensajes",
-    "noMessages": "Aún no hay mensajes",
+    "noMessages": "Aún no hay conversaciones. ¡Únete a una liga y empieza a chatear con otros jugadores!",
     "typeMessage": "Escribe un mensaje...",
-    "send": "Enviar"
+    "send": "Enviar",
+    "failedToLoad": "Error al cargar conversaciones. Inténtalo de nuevo.",
+    "failedToLoadMessages": "Error al cargar mensajes.",
+    "conversation": "Conversación",
+    "members": "{{count}} miembros",
+    "participants": "{{count}} participantes"
   }
 }

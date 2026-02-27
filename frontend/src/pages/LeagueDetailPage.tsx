@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box, Typography, Tabs, Tab, Button, Chip, Card, CardContent, CircularProgress, Alert, List, ListItem, ListItemText, Divider } from '@mui/material';
 import { CalendarMonth, Group, Payment } from '@mui/icons-material';
-import { useLeague, useLeagueMembers, useJoinLeague } from '../hooks/useLeagues';
-import { useLeagueRounds, useJoinRound } from '../hooks/useRounds';
+import { useLeague, useLeagueMembers, useJoinLeague, useLeaveLeague } from '../hooks/useLeagues';
+import { useLeagueRounds, useJoinRound, useRoundParticipants } from '../hooks/useRounds';
+import { useAuthStore } from '../store';
+import { PaymentDialog } from '../components/PaymentForm';
 
 export default function LeagueDetailPage() {
     const { leagueId } = useParams<{ leagueId: string }>();
@@ -12,6 +14,8 @@ export default function LeagueDetailPage() {
     const { data: rounds, isLoading: roundsLoading } = useLeagueRounds(leagueId || '');
     const { data: membersData } = useLeagueMembers(leagueId || '');
     const joinLeague = useJoinLeague(leagueId || '');
+    const leaveLeague = useLeaveLeague(leagueId || '');
+    const currentUser = useAuthStore((s) => s.user);
 
     if (leagueLoading) {
         return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>;
@@ -22,6 +26,7 @@ export default function LeagueDetailPage() {
     }
 
     const members = (membersData as any)?.members || [];
+    const isMember = members.some((m: any) => m.userId === currentUser?.userId);
 
     return (
         <Box>
@@ -38,24 +43,41 @@ export default function LeagueDetailPage() {
                         {(league as any).description}
                     </Typography>
                 </Box>
-                <Button
-                    variant="contained"
-                    onClick={() => joinLeague.mutate()}
-                    disabled={joinLeague.isPending}
-                >
-                    {joinLeague.isPending ? 'Joining...' : 'Join League'}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    {isMember ? (
+                        <>
+                            <Chip label="Member ✓" color="success" variant="outlined" />
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                size="small"
+                                onClick={() => leaveLeague.mutate()}
+                                disabled={leaveLeague.isPending}
+                            >
+                                {leaveLeague.isPending ? 'Leaving...' : 'Leave League'}
+                            </Button>
+                        </>
+                    ) : (
+                        <Button
+                            variant="contained"
+                            onClick={() => joinLeague.mutate()}
+                            disabled={joinLeague.isPending}
+                        >
+                            {joinLeague.isPending ? 'Joining...' : 'Join League'}
+                        </Button>
+                    )}
+                </Box>
             </Box>
 
             {joinLeague.isSuccess && <Alert severity="success" sx={{ mb: 2 }}>You've joined the league!</Alert>}
             {joinLeague.isError && <Alert severity="error" sx={{ mb: 2 }}>Failed to join. You may already be a member.</Alert>}
+            {leaveLeague.isSuccess && <Alert severity="info" sx={{ mb: 2 }}>You've left the league.</Alert>}
 
             <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
                 <Tab label={`Rounds (${rounds?.length || 0})`} icon={<CalendarMonth />} iconPosition="start" />
                 <Tab label={`Members (${members.length})`} icon={<Group />} iconPosition="start" />
             </Tabs>
 
-            {/* Rounds Tab */}
             {tab === 0 && (
                 <Box>
                     {roundsLoading && <CircularProgress />}
@@ -66,7 +88,6 @@ export default function LeagueDetailPage() {
                 </Box>
             )}
 
-            {/* Members Tab */}
             {tab === 1 && (
                 <Box>
                     {members.length === 0 && <Alert severity="info">No members yet. Be the first to join!</Alert>}
@@ -75,7 +96,7 @@ export default function LeagueDetailPage() {
                             <Box key={member.userId || i}>
                                 <ListItem>
                                     <ListItemText
-                                        primary={member.user?.displayName || member.userId}
+                                        primary={member.userId === currentUser?.userId ? 'You' : (member.user?.displayName || member.user?.firstName ? `${member.user?.firstName} ${member.user?.lastName}` : 'Member')}
                                         secondary={`Joined: ${member.joinedAt?.split('T')[0] || 'Unknown'} • Role: ${member.role}`}
                                     />
                                 </ListItem>
@@ -91,8 +112,31 @@ export default function LeagueDetailPage() {
 
 function RoundCard({ round }: { round: any }) {
     const joinRound = useJoinRound(round.roundId);
+    const { data: participants } = useRoundParticipants(round.roundId);
+    const currentUser = useAuthStore((s) => s.user);
     const isPast = new Date(round.registrationDeadline) < new Date();
     const isFull = round.currentPlayers >= round.maxPlayers;
+
+    const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
+    const [showPayment, setShowPayment] = useState(false);
+
+    const isParticipant = participants?.some(
+        (p: any) => p.userId === currentUser?.userId && p.status !== 'CANCELLED',
+    );
+
+    const canJoin = round.status === 'OPEN' && !isPast && !isFull && !isParticipant;
+
+    const handleJoin = async () => {
+        try {
+            const result = await joinRound.mutateAsync();
+            if (result.clientSecret) {
+                setPaymentClientSecret(result.clientSecret);
+                setShowPayment(true);
+            }
+        } catch (err) {
+            // Error handled by mutation state
+        }
+    };
 
     return (
         <Card sx={{ mb: 2 }}>
@@ -115,23 +159,41 @@ function RoundCard({ round }: { round: any }) {
                             Registration deadline: {round.registrationDeadline}
                         </Typography>
                     </Box>
-                    <Box>
-                        {round.status === 'OPEN' && !isPast && !isFull && (
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        {isParticipant && (
+                            <Chip label="Joined ✓" color="success" variant="outlined" />
+                        )}
+                        {canJoin && (
                             <Button
                                 variant="contained"
-                                onClick={() => joinRound.mutate()}
+                                onClick={handleJoin}
                                 disabled={joinRound.isPending}
                             >
                                 {joinRound.isPending ? 'Joining...' : `Join Round - £${(round.entryFee / 100).toFixed(2)}`}
                             </Button>
                         )}
-                        {isPast && <Chip label="Registration closed" color="warning" />}
-                        {isFull && <Chip label="Full" color="error" />}
+                        {isPast && !isParticipant && <Chip label="Registration closed" color="warning" />}
+                        {isFull && !isParticipant && <Chip label="Full" color="error" />}
                     </Box>
                 </Box>
-                {joinRound.isSuccess && <Alert severity="success" sx={{ mt: 1 }}>Registered! Payment will be processed.</Alert>}
+                {joinRound.isSuccess && !showPayment && <Alert severity="success" sx={{ mt: 1 }}>Registered! Payment will be processed.</Alert>}
                 {joinRound.isError && <Alert severity="error" sx={{ mt: 1 }}>Failed to join round.</Alert>}
             </CardContent>
+
+            <PaymentDialog
+                open={showPayment}
+                clientSecret={paymentClientSecret}
+                amount={round.entryFee}
+                title={`Pay Entry Fee - ${round.venue?.name || 'Round'}`}
+                onSuccess={() => {
+                    setShowPayment(false);
+                    setPaymentClientSecret(null);
+                }}
+                onClose={() => {
+                    setShowPayment(false);
+                    setPaymentClientSecret(null);
+                }}
+            />
         </Card>
     );
 }

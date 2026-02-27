@@ -93,6 +93,34 @@ export const useJoinLeague = (leagueId: string) => {
   });
 };
 
+export const useNearbyLeagues = (
+  params: { postcode?: string; lat?: number; lng?: number; radius?: number },
+  options = {},
+) => {
+  const sport = useAppStore((s) => s.selectedSport).toLowerCase();
+  const { postcode, lat, lng, radius } = params;
+
+  const queryParams = new URLSearchParams();
+  if (postcode) queryParams.set('postcode', postcode);
+  if (lat !== undefined) queryParams.set('lat', String(lat));
+  if (lng !== undefined) queryParams.set('lng', String(lng));
+  if (radius !== undefined) queryParams.set('radius', String(radius));
+
+  return useQuery({
+    queryKey: [LEAGUES_KEY, sport, 'nearby', postcode, lat, lng, radius],
+    queryFn: async () => {
+      const res = await apiClient.get<{
+        leagues: (League & { distance: number })[];
+        searchLocation: { lat: number; lng: number };
+        radius: number;
+      }>(`/${sport}/leagues/nearby?${queryParams.toString()}`);
+      return res;
+    },
+    enabled: !!(postcode || (lat !== undefined && lng !== undefined)),
+    ...options,
+  });
+};
+
 export const useLeaveLeague = (leagueId: string) => {
   const sport = useAppStore((s) => s.selectedSport).toLowerCase();
 

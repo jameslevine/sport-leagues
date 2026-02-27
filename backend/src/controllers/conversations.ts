@@ -13,6 +13,7 @@ import { HTTP_STATUS } from '../constants';
 import {
   getDbConversationById,
   getDbConversationsByLeague,
+  getDbConversationsByUser,
   createDbConversation,
   getDbChatMessagesByConversationId,
   createDbChatMessage,
@@ -30,11 +31,19 @@ export const getConversations = async (req: Request, res: Response) => {
 
     const { sport } = req.params;
     const sportType = sport.toUpperCase() as SportType;
+    const userId = req.user.sub;
+    const { limit } = req.query;
 
-    // TODO: Implement a proper query to get conversations by participant
-    // For now, we return league conversations
-    // In production, we'd need a GSI on participants or a separate user-conversations table
-    res.json({ conversations: [] });
+    const result = await getDbConversationsByUser(
+      sportType,
+      userId,
+      limit ? parseInt(limit as string) : undefined,
+    );
+
+    res.json({
+      conversations: result.conversations,
+      lastEvaluatedKey: result.lastEvaluatedKey,
+    });
   } catch (error) {
     console.error('Error fetching conversations:', error);
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({

@@ -217,6 +217,37 @@ export const createDbRoundParticipant = async (
   }
 };
 
+export const getDbUserRoundParticipations = async (
+  userId: string,
+  limit: number = 50,
+  lastEvaluatedKey?: Record<string, unknown>,
+): Promise<{
+  participants: RoundParticipant[];
+  lastEvaluatedKey?: Record<string, unknown>;
+}> => {
+  const params = {
+    TableName: TABLE_NAMES.ROUND_PARTICIPANTS,
+    IndexName: 'gsi1',
+    KeyConditionExpression: 'gsi1pk = :gsi1pk',
+    ExpressionAttributeValues: {
+      ':gsi1pk': createParticipantGSI1PK(userId),
+    },
+    Limit: limit,
+    ExclusiveStartKey: lastEvaluatedKey,
+  };
+
+  try {
+    const response = await dynamodb.send(new QueryCommand(params));
+    return {
+      participants: (response.Items || []) as RoundParticipant[],
+      lastEvaluatedKey: response.LastEvaluatedKey,
+    };
+  } catch (error) {
+    console.error('Error fetching user round participations:', error);
+    throw error;
+  }
+};
+
 export const updateDbRoundParticipantStatus = async (
   sportType: SportType,
   roundId: string,

@@ -227,11 +227,9 @@ export const leaveLeague = async (req: Request, res: Response) => {
     }
 
     if (member.role === LeagueMemberRole.ADMIN) {
-      return res
-        .status(HTTP_STATUS.BAD_REQUEST)
-        .json({
-          message: 'Admins cannot leave the league. Transfer ownership first.',
-        });
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: 'Admins cannot leave the league. Transfer ownership first.',
+      });
     }
 
     await deleteDbLeagueMember(sportType, leagueId, userId);
@@ -245,6 +243,118 @@ export const leaveLeague = async (req: Request, res: Response) => {
     });
   }
 };
+
+/**
+ * Search leagues by proximity to a postcode or lat/lng
+ * Uses postcodes.io for UK postcode geocoding (free, no API key)
+ * Calculates Haversine distance to filter leagues within radius
+ */
+export const searchLeaguesNearby = async (req: Request, res: Response) => {
+  try {
+    const { sport } = req.params;
+    const sportType = sport.toUpperCase() as SportType;
+    const { postcode, lat, lng, radius } = req.query;
+    const searchRadius = radius ? parseFloat(radius as string) : 50; // default 50km
+
+    let searchLat: number;
+    let searchLng: number;
+
+    if (postcode) {
+      // Geocode postcode using postcodes.io (UK postcodes, free API)
+      try {
+        const response = await fetch(
+          `https://api.postcodes.io/postcodes/${encodeURIComponent(postcode as string)}`,
+        );
+        const data = (await response.json()) as {
+          status: number;
+          result?: { latitude: number; longitude: number };
+        };
+        if (data.status !== 200 || !data.result) {
+          return res
+            .status(HTTP_STATUS.BAD_REQUEST)
+            .json({ message: 'Invalid postcode' });
+        }
+        searchLat = data.result!.latitude;
+        searchLng = data.result!.longitude;
+      } catch (err) {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .json({ message: 'Failed to geocode postcode' });
+      }
+    } else if (lat && lng) {
+      searchLat = parseFloat(lat as string);
+      searchLng = parseFloat(lng as string);
+    } else {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ message: 'Provide either postcode or lat/lng' });
+    }
+
+    // Get all leagues for this sport
+    const result = await getDbLeaguesBySport(sportType, 100);
+
+    // Filter by distance using Haversine formula
+    const nearbyLeagues = result.leagues
+      .filter((league) => {
+        if (!league.location?.lat || !league.location?.lng) return false;
+        const distance = haversineDistance(
+          searchLat,
+          searchLng,
+          league.location.lat,
+          league.location.lng,
+        );
+        // Use league's searchRadius if set, otherwise use the query radius
+        const leagueRadius = (league as any).searchRadius || searchRadius;
+        return distance <= leagueRadius;
+      })
+      .map((league) => ({
+        ...league,
+        distance:
+          Math.round(
+            haversineDistance(
+              searchLat,
+              searchLng,
+              league.location.lat,
+              league.location.lng,
+            ) * 10,
+          ) / 10,
+      }))
+      .sort((a, b) => a.distance - b.distance);
+
+    res.json({
+      leagues: nearbyLeagues,
+      searchLocation: { lat: searchLat, lng: searchLng },
+      radius: searchRadius,
+    });
+  } catch (error) {
+    console.error('Error searching nearby leagues:', error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      message: 'Error searching nearby leagues',
+    });
+  }
+};
+
+/**
+ * Haversine formula to calculate distance between two lat/lng points in km
+ */
+function haversineDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 export const getLeagueMembers = async (req: Request, res: Response) => {
   try {

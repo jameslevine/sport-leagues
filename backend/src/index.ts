@@ -11,6 +11,9 @@ import { router as notificationsRouter } from './routes/notifications';
 import { router as usersRouter } from './routes/users';
 import { roundScoresRouter, scoresRouter } from './routes/scores';
 import { router as conversationsRouter } from './routes/conversations';
+import { router as dashboardRouter } from './routes/dashboard';
+import { router as paymentsRouter } from './routes/payments';
+import { router as uploadsRouter } from './routes/uploads';
 
 const app = express();
 
@@ -40,6 +43,7 @@ app.use(express.json());
 app.use(cognitoAuthMiddleware);
 
 // Routes
+app.use('/:sport/dashboard', dashboardRouter);
 app.use('/:sport/users', usersRouter);
 app.use('/:sport/leagues', leaguesRouter);
 app.use('/:sport/leagues/:leagueId/rounds', leagueRoundsRouter);
@@ -49,6 +53,8 @@ app.use('/:sport/scores', scoresRouter);
 app.use('/:sport/matches', matchesRouter);
 app.use('/:sport/conversations', conversationsRouter);
 app.use('/:sport/notifications', notificationsRouter);
+app.use('/:sport/payments', paymentsRouter);
+app.use('/:sport/uploads', uploadsRouter);
 
 // Error handler
 app.use(errorHandler);

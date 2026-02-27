@@ -1,40 +1,84 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box, Typography, Card, CardContent, Switch, FormControlLabel,
-    TextField, Button, Divider, Alert,
+    TextField, Button, Divider, Alert, CircularProgress,
 } from '@mui/material';
 import { Notifications, Sms, Email, PhoneAndroid } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
+import { useProfile, useUpdateProfile } from '../hooks/useProfile';
 
 export default function NotificationSettingsPage() {
+    const { data: profile, isLoading } = useProfile();
+    const updateProfile = useUpdateProfile();
+    const { t } = useTranslation();
+
     const [push, setPush] = useState(true);
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(true);
     const [phoneNumber, setPhoneNumber] = useState('');
     const [saved, setSaved] = useState(false);
 
-    const handleSave = () => {
-        // TODO: Call API to update notification preferences
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+    // Load current preferences from profile
+    useEffect(() => {
+        if (profile) {
+            const prefs = (profile as any)?.notificationPreferences;
+            if (prefs) {
+                setPush(prefs.push ?? true);
+                setSms(prefs.sms ?? false);
+                setEmail(prefs.email ?? true);
+                setPhoneNumber(prefs.phoneNumber || '');
+            }
+        }
+    }, [profile]);
+
+    const handleSave = async () => {
+        try {
+            await updateProfile.mutateAsync({
+                notificationPreferences: {
+                    push,
+                    sms,
+                    email,
+                    phoneNumber: sms ? phoneNumber : undefined,
+                },
+            } as any);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
+        } catch (err) {
+            console.error('Failed to save notification preferences:', err);
+        }
     };
+
+    if (isLoading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     return (
         <Box>
             <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Notifications /> Notification Settings
+                <Notifications /> {t('notifications.title')}
             </Typography>
 
             {saved && (
                 <Alert severity="success" sx={{ mb: 2 }}>
-                    Notification preferences saved successfully!
+                    {t('notifications.saved')}
+                </Alert>
+            )}
+
+            {updateProfile.isError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    Failed to save preferences. Please try again.
                 </Alert>
             )}
 
             <Card sx={{ mb: 3 }}>
                 <CardContent>
-                    <Typography variant="h6" gutterBottom>Notification Channels</Typography>
+                    <Typography variant="h6" gutterBottom>{t('notifications.channels')}</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Choose how you want to receive notifications about rounds, matches, and messages.
+                        {t('notifications.channelsDescription')}
                     </Typography>
 
                     <Divider sx={{ mb: 2 }} />
@@ -43,23 +87,23 @@ export default function NotificationSettingsPage() {
                         <PhoneAndroid color="primary" />
                         <FormControlLabel
                             control={<Switch checked={push} onChange={(e) => setPush(e.target.checked)} />}
-                            label="Push Notifications"
+                            label={t('notifications.push')}
                         />
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ ml: 5, mb: 3 }}>
-                        Receive instant notifications on your mobile device
+                        {t('notifications.pushDescription')}
                     </Typography>
 
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                         <Sms color="primary" />
                         <FormControlLabel
                             control={<Switch checked={sms} onChange={(e) => setSms(e.target.checked)} />}
-                            label="SMS Notifications"
+                            label={t('notifications.sms')}
                         />
                     </Box>
                     {sms && (
                         <TextField
-                            label="Phone Number"
+                            label={t('notifications.phoneNumber')}
                             placeholder="+44 7700 900000"
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value)}
@@ -70,7 +114,7 @@ export default function NotificationSettingsPage() {
                     )}
                     {!sms && (
                         <Typography variant="body2" color="text.secondary" sx={{ ml: 5, mb: 3 }}>
-                            Receive text messages for important updates like match scheduling
+                            {t('notifications.smsDescription')}
                         </Typography>
                     )}
 
@@ -78,30 +122,35 @@ export default function NotificationSettingsPage() {
                         <Email color="primary" />
                         <FormControlLabel
                             control={<Switch checked={email} onChange={(e) => setEmail(e.target.checked)} />}
-                            label="Email Notifications"
+                            label={t('notifications.emailNotifications')}
                         />
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ ml: 5, mb: 3 }}>
-                        Receive email summaries and important updates
+                        {t('notifications.emailDescription')}
                     </Typography>
                 </CardContent>
             </Card>
 
             <Card sx={{ mb: 3 }}>
                 <CardContent>
-                    <Typography variant="h6" gutterBottom>What you'll be notified about</Typography>
+                    <Typography variant="h6" gutterBottom>{t('notifications.whatYouGet')}</Typography>
                     <Divider sx={{ mb: 2 }} />
-                    <Typography variant="body2">• Round registration deadline reminders</Typography>
-                    <Typography variant="body2">• Match scheduling (when groups are assigned)</Typography>
-                    <Typography variant="body2">• Match rescheduling by other players</Typography>
-                    <Typography variant="body2">• Round starting notifications</Typography>
-                    <Typography variant="body2">• Payment confirmations and refunds</Typography>
-                    <Typography variant="body2">• New messages in match group chats</Typography>
+                    <Typography variant="body2">• {t('notifications.roundDeadline')}</Typography>
+                    <Typography variant="body2">• {t('notifications.matchScheduling')}</Typography>
+                    <Typography variant="body2">• {t('notifications.matchRescheduling')}</Typography>
+                    <Typography variant="body2">• {t('notifications.roundStarting')}</Typography>
+                    <Typography variant="body2">• {t('notifications.paymentUpdates')}</Typography>
+                    <Typography variant="body2">• {t('notifications.newMessages')}</Typography>
                 </CardContent>
             </Card>
 
-            <Button variant="contained" size="large" onClick={handleSave}>
-                Save Preferences
+            <Button
+                variant="contained"
+                size="large"
+                onClick={handleSave}
+                disabled={updateProfile.isPending}
+            >
+                {updateProfile.isPending ? <CircularProgress size={24} color="inherit" /> : t('notifications.savePreferences')}
             </Button>
         </Box>
     );

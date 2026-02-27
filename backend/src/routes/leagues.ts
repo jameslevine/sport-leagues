@@ -14,10 +14,12 @@ import {
   joinLeague,
   leaveLeague,
   getLeagueMembers,
+  searchLeaguesNearby,
 } from '../controllers/leagues';
 
 export const router = Router({ mergeParams: true });
 
+router.get('/nearby', searchLeaguesNearby);
 router.get('/', validateParams(sportParamsSchema), getLeagues);
 router.post(
   '/',
